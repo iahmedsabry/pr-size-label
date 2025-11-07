@@ -14,11 +14,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Run size-label.sh
+      - name: Run Python size label script
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           INPUT_SIZES: >
             {"0":"XS","20":"S","50":"M","200":"L","800":"XL","2000":"XXL"}
           DEBUG_ACTION: "true"
         run: |
-          bash size-label.sh
+          python3 size_label.py
