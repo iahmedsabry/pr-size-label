@@ -201,6 +201,26 @@ Notes on behavior and environment
 - The action implementation still expects `GITHUB_TOKEN` (and `GITHUB_EVENT_PATH`) to be available; these are provided by the workflow runner automatically when the job runs (the action's composite steps reference `secrets.GITHUB_TOKEN` and `github.event_path`). You don't need to set `GITHUB_TOKEN` via `env` in your workflow step.
 - Pass only the inputs the action declares (`input_sizes`, `ignored`, `debug_action`, `github_api_url`) in the `with:` block.
 
+Important: how to pass secrets and runner context to the action
+- Composite action manifests (action.yml) cannot include expressions that reference `secrets.*` or certain workflow contexts (like `github.event_path`) because the action manifest is validated before the workflow's secrets are available. If the manifest contains such expressions you'll get an error like "Unrecognized named-value: 'secrets'" when the runner tries to load the action.
+
+- The correct pattern is to have the calling workflow pass secrets and runner-provided values via the step's `env` when invoking the action. Example:
+
+```yaml
+- name: Run size label action (remote)
+  uses: iahmedsabry/pr-size-label@v1
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    GITHUB_EVENT_PATH: ${{ github.event_path }}
+  with:
+    input_sizes: '{"0":"XS","20":"S","50":"M","200":"L","800":"XL","2000":"XXL"}'
+    debug_action: 'true'
+```
+
+- In this setup:
+  - The workflow step maps `secrets.GITHUB_TOKEN` and `github.event_path` into environment variables for the action to read at runtime.
+  - The composite action's `action.yml` should *not* reference `secrets.*` or `github.*` directly. Instead it can reference `inputs.*` and use the environment variables at runtime inside its steps.
+
 What I changed in the repo
 - Updated `.github/workflows/test-add-label.yml` to use `uses: iahmedsabry/pr-size-label@v1`.
 - Updated this explanation file to document the updated workflow and explain the mapping.
@@ -208,41 +228,5 @@ What I changed in the repo
 If you'd like, I can now:
 - Publish the composite action to a different repository name you prefer (for example `size-label`) and push a `v1` tag there, or
 - Create semantic version tags (for example `v1.0.0`) and GitHub Releases for better versioning.
-
-Tell me which you'd prefer and I'll do it next.
-
----
-
-Creating and publishing `v1.1` (what I did and best practices)
-
-I created an annotated git tag `v1.1` in this repository and pushed it to the remote `origin` so you can reference `uses: iahmedsabry/pr-add-label-test@v1.1` in workflows.
-
-Exact commands used (run in repository root):
-
-```bash
-git tag -a v1.1 -m "v1.1: minor updates and docs"
-git push origin v1.1
-```
-
-Notes about the remote message you may see
-- When pushing the tag, you may see a notice like:
-
-  "remote: This repository moved. Please use the new location: git@github.com:iahmedsabry/pr-size-label.git"
-
-  This is an informational message from the remote; it doesn't prevent the tag from being created on the remote. It indicates the repository was renamed or moved on GitHub. If you intend the canonical name to be different, consider updating workflows to reference the proper owner/repo name.
-
-Best practices (recap)
-- Prefer annotated tags for releases (`git tag -a v1.1 -m "..."`). They store the tagger, date, and message.
-- Consider semantic version tags (e.g., `v1.1.0`) for clearer versioning over time.
-- Create a GitHub Release from the tag with release notes for discoverability and changelogs.
-- Run CI (tests/lint) before tagging to ensure the tag points to a validated commit.
-
-Verification (what I checked)
-- Locally: `git tag --list` shows `v1.1`.
-- Remotely: `git ls-remote --tags origin` shows `refs/tags/v1.1` (or check on GitHub).
-
-If you'd like, I can:
-- Create a semantic release tag such as `v1.1.0` and push it as well, or
-- Draft a GitHub Release for `v1.1` with release notes.
 
 Tell me which you'd prefer and I'll do it next.

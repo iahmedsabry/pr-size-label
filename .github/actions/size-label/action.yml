@@ -1,0 +1,45 @@
+name: "Size Label (Python)"
+description: "Run the repository's `size_label.py` script to compute PR size and add a size/* label."
+author: "Automated conversion"
+
+inputs:
+  input_sizes:
+    description: 'JSON mapping of thresholds to labels (example: {"0":"XS","20":"S","50":"M"}).'
+    required: false
+  ignored:
+    description: 'Newline-separated glob patterns to ignore (use leading "!" to re-include).'
+    required: false
+  debug_action:
+    description: 'Set to "true" to enable debug logging.'
+    required: false
+  github_api_url:
+    description: 'Optional GitHub API base URL (for GHES).'
+    required: false
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    - name: Ensure script is executable
+      shell: bash
+      run: |
+        # Make script executable if possible, but don't fail on platforms that don't support chmod
+        chmod +x ./size_label.py || true
+
+    - name: Run size_label.py
+      shell: bash
+      # Note: composite action manifests can't reference `secrets.*` or some workflow
+      # context expressions. Secrets and runner-provided values (like `github.event_path`)
+      # must be passed by the caller workflow via the step's `env` or `with` inputs.
+      # Here we only forward the declared inputs; the workflow should set `env` for
+      # `GITHUB_TOKEN` and `GITHUB_EVENT_PATH` so the script can read them at runtime.
+      run: |
+        # Run the Python script that computes the label and posts it to the repo
+        python3 ./size_label.py
