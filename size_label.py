@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-"""Compute PR size and apply a size/* label (Python port of size-label.sh)."""
 
 from __future__ import annotations
 
