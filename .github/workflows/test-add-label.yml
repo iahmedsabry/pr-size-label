@@ -15,7 +15,15 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run size label action (remote)
+<<<<<<< HEAD
+        # Use the tag pushed in this repository. GitHub resolves `owner/repo@tag` to a
+        # repository named `repo` under the `owner` account — the earlier reference
+        # `iahmedsabry/size-label@v1` failed because that repository does not exist.
+        # We published `v1` in this repo (`pr-add-label-test`), so reference it here.
+        uses: iahmedsabry/pr-add-label-test@v1
+=======
         uses: iahmedsabry/pr-size-label@v1
+>>>>>>> 1a771fc2f9b54da40e1988de44c6353bbde0d424
         with:
           input_sizes: '{"0":"XS","20":"S","50":"M","200":"L","800":"XL","2000":"XXL"}'
           debug_action: 'true'

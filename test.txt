@@ -1,1 +1,1 @@
-# test size label
+# test size label using action instead of script

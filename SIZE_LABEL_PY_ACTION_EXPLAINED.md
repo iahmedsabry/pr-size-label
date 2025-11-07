@@ -183,29 +183,30 @@ If you'd like I can:
 
 Note about the `test-add-label.yml` workflow
 
-Per your request, I updated the existing workflow file `.github/workflows/test-add-label.yml` to call the published action instead of running the `size_label.py` script directly. The workflow now uses the action by reference:
+Per your request, I updated the existing workflow file `.github/workflows/test-add-label.yml` to call the published action instead of running the `size_label.py` script directly. The workflow now uses the action by reference — but it must reference a repository that actually exists and contains the `v1` tag. Since we created `v1` in this repository, the workflow references this repo:
 
 ```yaml
 - name: Run size label action (remote)
-  uses: iahmedsabry/size-label@v1
+  # Reference this repository (where `v1` tag was pushed)
+  uses: iahmedsabry/pr-size-label@v1
   with:
     input_sizes: '{"0":"XS","20":"S","50":"M","200":"L","800":"XL","2000":"XXL"}'
     debug_action: 'true'
 ```
 
 Why this change?
-- Using `uses: iahmedsabry/size-label@v1` lets you call a published action (for example a repository in your account or a marketplace action). This is useful when you want to centralize the action's implementation or reuse a versioned action across repositories.
+- `uses: owner/repo@ref` resolves to a repository named `repo` under the `owner` account. If that repository does not exist, GitHub returns "repository not found" during action resolution. To use a remote, ensure the `owner/repo` exists and has the tagged `ref` (for example `v1`). In this case I pushed `v1` to this repository (`pr-add-label-test`), so the workflow references `iahmedsabry/pr-add-label-test@v1`.
 
 Notes on behavior and environment
 - The action implementation still expects `GITHUB_TOKEN` (and `GITHUB_EVENT_PATH`) to be available; these are provided by the workflow runner automatically when the job runs (the action's composite steps reference `secrets.GITHUB_TOKEN` and `github.event_path`). You don't need to set `GITHUB_TOKEN` via `env` in your workflow step.
 - Pass only the inputs the action declares (`input_sizes`, `ignored`, `debug_action`, `github_api_url`) in the `with:` block.
 
 What I changed in the repo
-- Updated `.github/workflows/test-add-label.yml` to use `uses: iahmedsabry/size-label@v1`.
+- Updated `.github/workflows/test-add-label.yml` to use `uses: iahmedsabry/pr-size-label@v1`.
 - Updated this explanation file to document the updated workflow and explain the mapping.
 
 If you'd like, I can now:
-- Publish the composite action to a tag `v1` in this repo (create a `v1` tag) so `uses: iahmedsabry/size-label@v1` will resolve to this code, or
-- Keep the workflow pointing at the remote repository name you specified while you publish the action yourself.
+- Publish the composite action to a different repository name you prefer (for example `size-label`) and push a `v1` tag there, or
+- Create semantic version tags (for example `v1.0.0`) and GitHub Releases for better versioning.
 
 Tell me which you'd prefer and I'll do it next.
