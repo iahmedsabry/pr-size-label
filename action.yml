@@ -35,13 +35,11 @@ runs:
 
     - name: Run size_label.py
       shell: bash
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GITHUB_EVENT_PATH: ${{ github.event_path }}
-        INPUT_SIZES: ${{ inputs.input_sizes }}
-        IGNORED: ${{ inputs.ignored }}
-        DEBUG_ACTION: ${{ inputs.debug_action }}
-        GITHUB_API_URL: ${{ inputs.github_api_url }}
+      # Note: composite action manifests can't reference `secrets.*` or some workflow
+      # context expressions. Secrets and runner-provided values (like `github.event_path`)
+      # must be passed by the caller workflow via the step's `env` or `with` inputs.
+      # Here we only forward the declared inputs; the workflow should set `env` for
+      # `GITHUB_TOKEN` and `GITHUB_EVENT_PATH` so the script can read them at runtime.
       run: |
         # Run the Python script that computes the label and posts it to the repo
         python3 ./size_label.py
