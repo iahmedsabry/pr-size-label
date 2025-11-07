@@ -15,7 +15,11 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run size label action (remote)
-        uses: iahmedsabry/pr-size-label@v1.2
+        uses: iahmedsabry/pr-add-label@v1.2
+        # Pass secrets and runner-provided values via env from the workflow step.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_EVENT_PATH: ${{ github.event_path }}
         with:
           input_sizes: '{"0":"XS","20":"S","50":"M","200":"L","800":"XL","2000":"XXL"}'
           debug_action: 'true'
